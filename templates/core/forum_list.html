@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Forum Universitaire{% endblock %}
+
+{% block content %}
+<div class="flex justify-between align-center mb-4">
+    <div>
+        <h2>💬 Forum d'Entraide Universitaire</h2>
+        <p class="text-muted">Échangez avec vos pairs et vos professeurs</p>
+    </div>
+    <a href="{% url 'forum_thread_create' %}" class="btn btn-primary">Poser une question</a>
+</div>
+
+<div class="card">
+    {% for thread in threads %}
+    <div class="forum-thread flex justify-between align-center">
+        <div>
+            <a href="{% url 'forum_thread_detail' thread.pk %}">
+                <h3 style="margin-bottom: 0.25rem;">{{ thread.title }}</h3>
+            </a>
+            <div class="text-muted" style="font-size: 0.85rem;">
+                Par <strong>{{ thread.author.get_full_name|default:thread.author.username }}</strong>
+                {% if thread.course %} | Cours: {{ thread.course.title }}{% endif %}
+                | {{ thread.created_at|date:"d M Y, H:i" }}
+            </div>
+        </div>
+        <div class="text-center">
+            <span class="badge badge-info" style="font-size: 1rem;">{{ thread.replies.count }}</span>
+            <div class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">Réponses</div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted text-center py-4">Aucune discussion pour le moment. Soyez le premier à poser une question !</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Devoirs — {{ course.title }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a></li>
+        <li class="breadcrumb-item active">Devoirs</li>
+    </ol>
+</nav>
+<h1 class="h4 mb-4">Devoirs du cours</h1>
+<div class="list-group">
+    {% for assignment in assignments %}
+    <a href="{% url 'assignment_detail' assignment.pk %}" class="list-group-item list-group-item-action">
+        <div class="d-flex justify-content-between">
+            <strong>{{ assignment.title }}</strong>
+            <span class="badge {% if assignment.is_past_due %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                {{ assignment.due_date|date:"d/m/Y" }}
+            </span>
+        </div>
+        <p class="mb-0 small text-muted">{{ assignment.description|truncatewords:20 }}</p>
+    </a>
+    {% empty %}
+    <div class="alert alert-info">Aucun devoir pour ce cours.</div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Noter le rendu{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h1 class="h5 mb-0">Noter le rendu de {{ submission.student.get_full_name|default:submission.student.username }}</h1>
+                <p class="small text-muted mb-0">Devoir : {{ submission.assignment.title }}</p>
+            </div>
+            <div class="card-body">
+                <p><a href="{{ submission.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-download me-1"></i>Télécharger le fichier rendu
+                </a></p>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-success">Enregistrer la note</button>
+                    <a href="{% url 'assignment_detail' submission.assignment.pk %}" class="btn btn-outline-secondary">Retour</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

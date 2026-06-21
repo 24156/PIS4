@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Ajouter une ressource{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h1 class="h5 mb-0">Ajouter une ressource — {{ course.title }}</h1>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">Publier la ressource</button>
+                    <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-secondary">Retour</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

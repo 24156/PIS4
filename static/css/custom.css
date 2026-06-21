@@ -1,0 +1,80 @@
+:root {
+    --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+body {
+    background-color: #f8f9fa;
+}
+
+.avatar-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.card-hover {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+}
+
+.progress-thin {
+    height: 8px;
+}
+
+.hero-banner {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 1rem;
+    padding: 2rem;
+}
+
+.badge-official {
+    background-color: #198754;
+}
+
+.thread-resolved {
+    opacity: 0.85;
+}
+
+.reply-official {
+    border-left: 4px solid #198754;
+    background-color: #f0fff4;
+}
+
+.stat-card {
+    border: none;
+    border-radius: 1rem;
+}
+
+.form-page {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.course-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.resource-item {
+    border-left: 3px solid #0d6efd;
+    padding-left: 1rem;
+}
+
+.assignment-due-soon {
+    border-left: 3px solid #ffc107;
+}
+
+.assignment-overdue {
+    border-left: 3px solid #dc3545;
+}

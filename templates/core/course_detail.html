@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between align-center mb-4">
+    <div>
+        <h2>{{ course.title }}</h2>
+        <p class="text-muted">Professeur: {{ course.professor.get_full_name }}</p>
+    </div>
+    {% if user == course.professor %}
+        <div class="flex gap-2">
+            <a href="{% url 'update_progress' course.pk %}" class="btn btn-outline">Mettre à jour l'avancement</a>
+            <a href="{% url 'add_resource' course.pk %}" class="btn btn-secondary">Ajouter Ressource</a>
+            <a href="{% url 'add_assignment' course.pk %}" class="btn btn-primary">Nouveau Devoir</a>
+        </div>
+    {% endif %}
+</div>
+
+{% if progress %}
+<div class="card mb-4">
+    <h3>État d'avancement ({{ progress.percentage }}%)</h3>
+    <div class="progress-wrapper mt-2">
+        <div class="progress-bar" style="width: {{ progress.percentage }}%;"></div>
+    </div>
+    <div class="flex justify-between mt-3">
+        <div>
+            <strong>Chapitre en cours:</strong>
+            <span class="text-muted">{{ progress.current_chapter|default:"Non spécifié" }}</span>
+        </div>
+        <div>
+            <strong>Chapitres terminés:</strong>
+            <span class="text-muted">{{ progress.completed_chapters|default:"Aucun" }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="grid-3">
+    <!-- Ressources Section -->
+    <div style="grid-column: span 2;">
+        <div class="card">
+            <h3 class="mb-3">📚 Ressources Pédagogiques</h3>
+            {% for resource in resources %}
+                <div class="flex justify-between align-center mb-2" style="padding: 1rem; background: var(--bg-color); border-radius: var(--radius);">
+                    <div>
+                        <strong>{{ resource.title }}</strong>
+                        <div class="text-muted" style="font-size: 0.85rem;">Ajouté le {{ resource.uploaded_at|date:"d M Y" }}</div>
+                    </div>
+                    <div class="flex gap-2">
+                        {% if resource.file %}
+                            <a href="{{ resource.file.url }}" target="_blank" class="badge badge-info">Document</a>
+                        {% endif %}
+                        {% if resource.video_url %}
+                            <a href="{{ resource.video_url }}" target="_blank" class="badge badge-success">Vidéo</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted">Aucune ressource disponible pour le moment.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Devoirs Section -->
+    <div>
+        <div class="card">
+            <h3 class="mb-3">📝 Devoirs à rendre</h3>
+            {% for assignment in assignments %}
+                <div style="padding: 1rem; background: var(--bg-color); border-radius: var(--radius); margin-bottom: 1rem;">
+                    <strong>{{ assignment.title }}</strong>
+                    <p class="text-muted mt-1" style="font-size: 0.9rem;">{{ assignment.description }}</p>
+                    <div class="mt-2 text-muted" style="font-size: 0.85rem;">
+                        <strong>Limite :</strong> {{ assignment.due_date|date:"d M Y, H:i" }}
+                    </div>
+                    
+                    {% if user.is_student %}
+                        <div class="mt-3">
+                            <a href="{% url 'submit_assignment' assignment.pk %}" class="btn btn-primary" style="width: 100%; padding: 0.5rem;">Soumettre le devoir</a>
+                        </div>
+                    {% elif user == course.professor %}
+                        <div class="mt-3 text-muted" style="font-size: 0.85rem;">
+                            {{ assignment.submissions.count }} rendu(s)
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-muted">Aucun devoir en cours.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
