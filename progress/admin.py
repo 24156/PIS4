@@ -1,8 +1,1 @@
-from django.contrib import admin
-from .models import Progress
-
-
-@admin.register(Progress)
-class ProgressAdmin(admin.ModelAdmin):
-    list_display = ['course', 'percentage', 'current_chapter', 'updated_at']
-    list_filter = ['percentage']
+# Interface admin désactivée — inscription professeur/étudiant uniquement.

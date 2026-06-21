@@ -40,12 +40,21 @@ def course_create(request):
 def course_detail(request, pk):
     course = get_object_or_404(Course, pk=pk)
     is_enrolled = False
+    is_course_professor = request.user.is_professor() and course.professor == request.user
     if request.user.is_student():
         is_enrolled = Enrollment.objects.filter(student=request.user, course=course).exists()
         if not is_enrolled:
             messages.warning(request, 'Vous devez vous inscrire à ce cours pour accéder au contenu.')
-    resources = course.resources.all() if (request.user.is_professor() or is_enrolled) else []
-    assignments = course.assignments.all() if (request.user.is_professor() or is_enrolled) else []
+    elif request.user.is_professor() and not is_course_professor:
+        messages.warning(request, 'Vous ne pouvez consulter que vos propres cours.')
+    can_access_content = is_enrolled or is_course_professor
+    resources = course.resources.all() if can_access_content else []
+    assignments = list(course.assignments.all()) if can_access_content else []
+    if request.user.is_student() and can_access_content:
+        submissions = Submission.objects.filter(assignment__in=assignments, student=request.user)
+        sub_dict = {sub.assignment_id: sub for sub in submissions}
+        for assignment in assignments:
+            assignment.user_submission = sub_dict.get(assignment.id)
     try:
         progress = course.progress
     except Progress.DoesNotExist:
@@ -56,6 +65,7 @@ def course_detail(request, pk):
         'assignments': assignments,
         'progress': progress,
         'is_enrolled': is_enrolled,
+        'is_course_professor': is_course_professor,
     }
     return render(request, 'courses/course_detail.html', context)
 
@@ -64,9 +74,12 @@ def course_detail(request, pk):
 @student_required
 def enroll_course(request, pk):
     course = get_object_or_404(Course, pk=pk)
-    Enrollment.objects.get_or_create(student=request.user, course=course)
-    messages.success(request, f'Inscription au cours "{course.title}" confirmée.')
-    return redirect('course_detail', pk=course.pk)
+    if Enrollment.objects.filter(student=request.user, course=course).exists():
+        messages.info(request, f'Vous êtes déjà inscrit au cours "{course.title}".')
+    else:
+        Enrollment.objects.create(student=request.user, course=course)
+        messages.success(request, f'Inscription au cours "{course.title}" confirmée.')
+    return redirect('dashboard')
 
 
 @login_required
@@ -95,7 +108,7 @@ def add_assignment(request, pk):
     if course.professor != request.user:
         raise PermissionDenied
     if request.method == 'POST':
-        form = AssignmentForm(request.POST)
+        form = AssignmentForm(request.POST, request.FILES)
         if form.is_valid():
             assignment = form.save(commit=False)
             assignment.course = course
@@ -146,6 +159,9 @@ def submit_assignment(request, pk):
     if not Enrollment.objects.filter(student=request.user, course=assignment.course).exists():
         raise PermissionDenied
     existing = Submission.objects.filter(assignment=assignment, student=request.user).first()
+    if existing and existing.status == 'graded':
+        messages.error(request, 'Ce devoir a déjà été noté. Vous ne pouvez plus le modifier.')
+        return redirect('assignment_detail', pk=assignment.pk)
     if request.method == 'POST':
         form = SubmissionForm(request.POST, request.FILES, instance=existing)
         if form.is_valid():
@@ -154,7 +170,12 @@ def submit_assignment(request, pk):
             submission.student = request.user
             submission.status = 'pending'
             submission.save()
-            messages.success(request, 'Devoir soumis avec succès.')
+            if existing:
+                Submission.objects.filter(pk=submission.pk).update(submitted_at=timezone.now())
+            messages.success(
+                request,
+                'Devoir modifié avec succès.' if existing else 'Devoir soumis avec succès.',
+            )
             return redirect('assignment_detail', pk=assignment.pk)
     else:
         form = SubmissionForm(instance=existing)

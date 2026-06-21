@@ -13,21 +13,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write('Création des données de démonstration...')
 
-        admin, _ = User.objects.get_or_create(
-            username='admin',
-            defaults={
-                'email': 'admin@eduplatform.mr',
-                'first_name': 'Admin',
-                'last_name': 'Système',
-                'role': 'professor',
-                'is_staff': True,
-                'is_superuser': True,
-            },
-        )
-        if not admin.check_password('admin123'):
-            admin.set_password('admin123')
-            admin.save()
-
         prof, _ = User.objects.get_or_create(
             username='prof.mahmoud',
             defaults={
@@ -144,7 +129,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Données de démonstration créées avec succès !'))
         self.stdout.write('')
         self.stdout.write('Comptes de test :')
-        self.stdout.write('  Admin     : admin / admin123')
         self.stdout.write('  Professeur: prof.mahmoud / prof123')
         self.stdout.write('  Étudiant  : etudiant.fatima / etud123')
         self.stdout.write('  Étudiant  : etudiant.mohamed / etud123')

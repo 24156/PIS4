@@ -19,11 +19,11 @@ def dashboard(request):
         return render(request, 'users/prof_dashboard.html', {'courses': courses})
     enrolled_ids = Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
     courses = Course.objects.filter(id__in=enrolled_ids)
-    all_courses = Course.objects.all()
+    available_courses = Course.objects.exclude(id__in=enrolled_ids)
     return render(
         request,
         'users/student_dashboard.html',
-        {'courses': courses, 'all_courses': all_courses},
+        {'courses': courses, 'available_courses': available_courses},
     )
 
 

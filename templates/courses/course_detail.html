@@ -59,7 +59,7 @@
 </div>
 {% endif %}
 
-{% if is_enrolled or user.is_professor %}
+{% if is_enrolled or is_course_professor %}
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card shadow-sm">
@@ -111,7 +111,18 @@
                     <p class="small text-muted mb-1">{{ assignment.description|truncatewords:12 }}</p>
                     <div class="small text-muted">Limite : {{ assignment.due_date|date:"d/m/Y H:i" }}</div>
                     {% if user.is_student %}
-                    <a href="{% url 'submit_assignment' assignment.pk %}" class="btn btn-sm btn-primary mt-2 w-100">Soumettre</a>
+                    <div class="mt-2">
+                        {% if assignment.user_submission %}
+                            {% if assignment.user_submission.status == 'graded' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Noté : {{ assignment.user_submission.grade }}/{{ assignment.max_score }}</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Rendu - En attente</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-exclamation-circle me-1"></i>Non soumis</span>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'assignment_detail' assignment.pk %}" class="btn btn-sm btn-primary mt-2 w-100">Voir le devoir</a>
                     {% elif user == course.professor %}
                     <a href="{% url 'assignment_detail' assignment.pk %}" class="btn btn-sm btn-outline-secondary mt-2 w-100">
                         {{ assignment.submissions.count }} rendu(s)

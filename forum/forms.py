@@ -1,4 +1,5 @@
 from django import forms
+from courses.models import Course, Enrollment
 from .models import ForumThread, ForumReply, ForumAttachment
 
 
@@ -13,9 +14,18 @@ class ForumThreadForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['course'].required = False
         self.fields['course'].empty_label = '— Sujet général (hors cours) —'
+        if self.user:
+            if self.user.is_professor():
+                self.fields['course'].queryset = Course.objects.filter(professor=self.user)
+            elif self.user.is_student():
+                enrolled_ids = Enrollment.objects.filter(student=self.user).values_list('course_id', flat=True)
+                self.fields['course'].queryset = Course.objects.filter(id__in=enrolled_ids)
+            else:
+                self.fields['course'].queryset = Course.objects.none()
 
 
 class ForumReplyForm(forms.ModelForm):

@@ -78,6 +78,7 @@ class Assignment(models.Model):
     description = models.TextField(verbose_name='Description')
     due_date = models.DateTimeField(verbose_name='Date limite de rendu')
     max_score = models.PositiveIntegerField(default=20, verbose_name='Note maximale')
+    file = models.FileField(upload_to='assignments/instructions/', blank=True, null=True, verbose_name='Fichier joint (Consignes)')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

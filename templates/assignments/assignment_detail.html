@@ -12,6 +12,14 @@
     <div class="card-body">
         <h1 class="h4">{{ assignment.title }}</h1>
         <p>{{ assignment.description }}</p>
+        {% if assignment.file %}
+        <div class="mb-3">
+            <strong>Consignes jointes :</strong>
+            <a href="{{ assignment.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                <i class="bi bi-download"></i> Télécharger les consignes
+            </a>
+        </div>
+        {% endif %}
         <div class="row small text-muted">
             <div class="col-md-4"><strong>Date limite :</strong> {{ assignment.due_date|date:"d/m/Y H:i" }}</div>
             <div class="col-md-4"><strong>Note max :</strong> {{ assignment.max_score }}/20</div>
@@ -20,15 +28,25 @@
             </div>
         </div>
         {% if user.is_student %}
-        <a href="{% url 'submit_assignment' assignment.pk %}" class="btn btn-primary mt-3">
-            {% if submission %}Modifier mon rendu{% else %}Soumettre le devoir{% endif %}
-        </a>
-        {% if submission %}
-        <div class="alert alert-info mt-3 mb-0">
-            Rendu le {{ submission.submitted_at|date:"d/m/Y H:i" }}
-            {% if submission.grade %} — Note : <strong>{{ submission.grade }}/{{ assignment.max_score }}</strong>{% endif %}
-            {% if submission.feedback %}<br><em>{{ submission.feedback }}</em>{% endif %}
+        {% if submission and submission.status == 'graded' %}
+        <div class="border border-success bg-success bg-opacity-10 p-3 rounded mt-3">
+            <h5 class="text-success h6 mb-2"><i class="bi bi-check-circle-fill me-2"></i>Devoir Noté</h5>
+            <strong>Rendu le {{ submission.submitted_at|date:"d/m/Y H:i" }}</strong><br>
+            Note : <strong class="fs-5 text-success">{{ submission.grade }}/{{ assignment.max_score }}</strong>
+            {% if submission.feedback %}<br><span class="text-muted">Commentaire du professeur :</span><br><em>{{ submission.feedback }}</em>{% endif %}
         </div>
+        {% elif submission %}
+        <div class="border border-info bg-info bg-opacity-10 p-3 rounded mt-3 mb-2">
+            <h5 class="text-info h6 mb-2"><i class="bi bi-info-circle-fill me-2"></i>Devoir Rendu</h5>
+            Rendu le {{ submission.submitted_at|date:"d/m/Y H:i" }} — En attente de correction
+        </div>
+        <a href="{% url 'submit_assignment' assignment.pk %}" class="btn btn-warning mt-3">
+            <i class="bi bi-pencil me-1"></i>Modifier mon rendu
+        </a>
+        {% else %}
+        <a href="{% url 'submit_assignment' assignment.pk %}" class="btn btn-primary mt-3">
+            <i class="bi bi-upload me-1"></i>Soumettre le devoir
+        </a>
         {% endif %}
         {% endif %}
     </div>

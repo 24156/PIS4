@@ -30,12 +30,13 @@ class ResourceForm(forms.ModelForm):
 class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'due_date', 'max_score']
+        fields = ['title', 'description', 'due_date', 'max_score', 'file']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'due_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'max_score': forms.NumberInput(attrs={'class': 'form-control'}),
+            'file': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
 
@@ -48,13 +49,33 @@ class SubmissionForm(forms.ModelForm):
             'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.file:
+            self.fields['file'].required = False
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if file:
+            return file
+        if self.instance.pk and self.instance.file:
+            return self.instance.file
+        raise forms.ValidationError('Veuillez joindre un fichier.')
+
 
 class GradeSubmissionForm(forms.ModelForm):
     class Meta:
         model = Submission
-        fields = ['grade', 'feedback', 'status']
+        fields = ['grade', 'feedback']
         widgets = {
             'grade': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'feedback': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def clean_grade(self):
+        grade = self.cleaned_data.get('grade')
+        if grade is not None and self.instance.assignment_id:
+            max_score = self.instance.assignment.max_score
+            if grade > max_score:
+                raise forms.ValidationError(f'La note ne peut pas dépasser {max_score}.')
+        return grade

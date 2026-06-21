@@ -1,13 +1,22 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm
 from .models import User, UserProfile
 
 
-class RegisterForm(UserCreationForm):
+class RegisterForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label='Mot de passe',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
+    password2 = forms.CharField(
+        label='Confirmation du mot de passe',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
     role = forms.ChoiceField(
         choices=User.ROLE_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Rôle',
+        help_text='Choisissez « Étudiant » ou « Professeur » selon votre profil.',
     )
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
     first_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -15,15 +24,30 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'role', 'password1', 'password2']
+        fields = ['username', 'email', 'first_name', 'last_name', 'role']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in ('password1', 'password2'):
-            self.fields[field].widget.attrs.update({'class': 'form-control'})
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 != password2:
+            raise forms.ValidationError('Les deux mots de passe ne correspondent pas.')
+        return password2
+
+    def clean_role(self):
+        role = self.cleaned_data.get('role')
+        if role not in ('student', 'professor'):
+            raise forms.ValidationError('Rôle invalide.')
+        return role
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password1'])
+        if commit:
+            user.save()
+        return user
 
 
 class LoginForm(AuthenticationForm):
