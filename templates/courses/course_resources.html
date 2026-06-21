@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Ajouter une ressource{% endblock %}
+{% block title %}{% if action == 'edit' %}Modifier la ressource{% else %}Ajouter une ressource{% endif %}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card shadow-sm">
             <div class="card-header bg-white">
-                <h1 class="h5 mb-0">Ajouter une ressource — {{ course.title }}</h1>
+                <h1 class="h5 mb-0">{% if action == 'edit' %}Modifier la ressource{% else %}Ajouter une ressource{% endif %} — {{ course.title }}</h1>
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
@@ -16,7 +16,7 @@
                         {{ field }}
                     </div>
                     {% endfor %}
-                    <button type="submit" class="btn btn-primary">Publier la ressource</button>
+                    <button type="submit" class="btn btn-primary">{% if action == 'edit' %}Enregistrer les modifications{% else %}Publier la ressource{% endif %}</button>
                     <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-secondary">Retour</a>
                 </form>
             </div>

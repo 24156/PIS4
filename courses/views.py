@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from common.decorators import professor_required, student_required
 from progress.models import Progress
-from .models import Course, Assignment, Submission, Enrollment
+from .models import Course, Assignment, Submission, Enrollment, CourseResource
 from .forms import CourseForm, ResourceForm, AssignmentForm, SubmissionForm, GradeSubmissionForm
 
 
@@ -208,3 +208,81 @@ def grade_submission(request, pk):
         'assignments/grade_submission.html',
         {'form': form, 'submission': submission},
     )
+
+
+@login_required
+@professor_required
+def edit_resource(request, pk):
+    resource = get_object_or_404(CourseResource, pk=pk)
+    course = resource.course
+    if course.professor != request.user:
+        raise PermissionDenied
+    if request.method == 'POST':
+        form = ResourceForm(request.POST, request.FILES, instance=resource)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Ressource modifiée avec succès.')
+            return redirect('course_detail', pk=course.pk)
+    else:
+        form = ResourceForm(instance=resource)
+    return render(request, 'courses/course_resources.html', {'form': form, 'course': course, 'action': 'edit', 'resource': resource})
+
+
+@login_required
+@professor_required
+def delete_resource(request, pk):
+    resource = get_object_or_404(CourseResource, pk=pk)
+    course = resource.course
+    if course.professor != request.user:
+        raise PermissionDenied
+    if request.method == 'POST':
+        resource.delete()
+        messages.success(request, 'Ressource supprimée avec succès.')
+    return redirect('course_detail', pk=course.pk)
+
+
+@login_required
+@professor_required
+def edit_assignment(request, pk):
+    assignment = get_object_or_404(Assignment, pk=pk)
+    course = assignment.course
+    if course.professor != request.user:
+        raise PermissionDenied
+    if request.method == 'POST':
+        form = AssignmentForm(request.POST, request.FILES, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Devoir modifié avec succès.')
+            return redirect('assignment_detail', pk=assignment.pk)
+    else:
+        form = AssignmentForm(instance=assignment)
+    return render(request, 'assignments/assignment_create.html', {'form': form, 'course': course, 'action': 'edit', 'assignment': assignment})
+
+
+@login_required
+@professor_required
+def delete_assignment(request, pk):
+    assignment = get_object_or_404(Assignment, pk=pk)
+    course = assignment.course
+    if course.professor != request.user:
+        raise PermissionDenied
+    if request.method == 'POST':
+        assignment.delete()
+        messages.success(request, 'Devoir supprimé avec succès.')
+    return redirect('course_detail', pk=course.pk)
+
+
+@login_required
+@professor_required
+def delete_grade(request, pk):
+    submission = get_object_or_404(Submission, pk=pk)
+    if submission.assignment.course.professor != request.user:
+        raise PermissionDenied
+    if request.method == 'POST':
+        submission.grade = None
+        submission.feedback = ''
+        submission.status = 'pending'
+        submission.graded_at = None
+        submission.save()
+        messages.success(request, 'Note supprimée avec succès.')
+    return redirect('assignment_detail', pk=submission.assignment.pk)

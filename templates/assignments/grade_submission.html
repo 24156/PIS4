@@ -21,8 +21,16 @@
                     </div>
                     {% endfor %}
                     <button type="submit" class="btn btn-success">Enregistrer la note</button>
+                    {% if submission.status == 'graded' %}
+                    <button type="submit" form="delete-grade-form" class="btn btn-danger">Supprimer la note</button>
+                    {% endif %}
                     <a href="{% url 'assignment_detail' submission.assignment.pk %}" class="btn btn-outline-secondary">Retour</a>
                 </form>
+                {% if submission.status == 'graded' %}
+                <form id="delete-grade-form" action="{% url 'delete_grade' submission.pk %}" method="post" class="d-none" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette note ?');">
+                    {% csrf_token %}
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -10,7 +10,22 @@
 
 <div class="card shadow-sm mb-4">
     <div class="card-body">
-        <h1 class="h4">{{ assignment.title }}</h1>
+        <div class="d-flex justify-content-between align-items-start gap-3">
+            <h1 class="h4">{{ assignment.title }}</h1>
+            {% if user.is_professor and course.professor == user %}
+            <div class="d-flex gap-2">
+                <a href="{% url 'edit_assignment' assignment.pk %}" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-pencil"></i> Modifier le devoir
+                </a>
+                <form action="{% url 'delete_assignment' assignment.pk %}" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce devoir ?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
         <p>{{ assignment.description }}</p>
         {% if assignment.file %}
         <div class="mb-3">
@@ -73,8 +88,18 @@
                 <td><span class="badge bg-{% if sub.status == 'graded' %}success{% else %}secondary{% endif %}">{{ sub.get_status_display }}</span></td>
                 <td>{% if sub.grade %}{{ sub.grade }}/{{ assignment.max_score }}{% else %}—{% endif %}</td>
                 <td>
-                    <a href="{{ sub.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i></a>
-                    <a href="{% url 'grade_submission' sub.pk %}" class="btn btn-sm btn-success"><i class="bi bi-pencil"></i> Noter</a>
+                    <a href="{{ sub.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Télécharger le rendu"><i class="bi bi-download"></i></a>
+                    <a href="{% url 'grade_submission' sub.pk %}" class="btn btn-sm btn-success" title="Modifier/Ajouter la note">
+                        <i class="bi bi-pencil"></i> {% if sub.status == 'graded' %}Modifier{% else %}Noter{% endif %}
+                    </a>
+                    {% if sub.status == 'graded' %}
+                    <form action="{% url 'delete_grade' sub.pk %}" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette note ?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger" title="Supprimer la note">
+                            <i class="bi bi-trash"></i> Supprimer note
+                        </button>
+                    </form>
+                    {% endif %}
                 </td>
             </tr>
             {% empty %}

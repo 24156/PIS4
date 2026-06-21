@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
@@ -19,7 +20,15 @@ def _user_can_access_course(user, course):
 
 @login_required
 def thread_list(request):
-    threads = ForumThread.objects.select_related('author', 'course').prefetch_related('replies').all()
+    threads = ForumThread.objects.select_related('author', 'course').prefetch_related('replies')
+    if request.user.is_professor():
+        threads = threads.filter(Q(course__isnull=True) | Q(course__professor=request.user))
+    elif request.user.is_student():
+        enrolled_course_ids = Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
+        threads = threads.filter(Q(course__isnull=True) | Q(course_id__in=enrolled_course_ids))
+    else:
+        threads = threads.none()
+    
     course_id = request.GET.get('course')
     if course_id:
         threads = threads.filter(course_id=course_id)

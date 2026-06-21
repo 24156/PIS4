@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Nouveau devoir{% endblock %}
+{% block title %}{% if action == 'edit' %}Modifier le devoir{% else %}Nouveau devoir{% endif %}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card shadow-sm">
-            <div class="card-header bg-white"><h1 class="h5 mb-0">Nouveau devoir — {{ course.title }}</h1></div>
+            <div class="card-header bg-white">
+                <h1 class="h5 mb-0">{% if action == 'edit' %}Modifier le devoir{% else %}Nouveau devoir{% endif %} — {{ course.title }}</h1>
+            </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -14,7 +16,7 @@
                         {{ field }}
                     </div>
                     {% endfor %}
-                    <button type="submit" class="btn btn-primary">Créer le devoir</button>
+                    <button type="submit" class="btn btn-primary">{% if action == 'edit' %}Enregistrer les modifications{% else %}Créer le devoir{% endif %}</button>
                     <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-secondary">Annuler</a>
                 </form>
             </div>

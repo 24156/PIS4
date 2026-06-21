@@ -89,6 +89,17 @@
                                 <i class="bi bi-link-45deg"></i> Lien
                             </a>
                             {% endif %}
+                            {% if user.is_professor and user == course.professor %}
+                            <a href="{% url 'edit_resource' resource.pk %}" class="btn btn-sm btn-outline-warning" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{% url 'delete_resource' resource.pk %}" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
